@@ -1,14 +1,10 @@
-FROM ihnorton/slicer2binder:2959d6a954
+FROM lassoan/slicer-notebook:2020-05-15-0bc7cb
 
 COPY --chown=sliceruser . ${HOME}/nb
 WORKDIR ${HOME}/nb
 
 ################################################################################
 # launch jupyter
-# HACK need this until linux build and packaging path is fixed
-# HACK pending linux build fix
-ENV LD_LIBRARY_PATH /home/sliceruser/.config/NA-MIC/Extensions-27480/SlicerJupyter/lib64/
-
 ENTRYPOINT ["sh", "/home/sliceruser/nb/start"]
 # NOTE: this is only the *default* command. In mybinder, ENTRYPOINT will be
 #       called with a custom version of this to set port, token etc.
