@@ -2,8 +2,50 @@
 
 set -ex
 
+# Write all server logs to ~/.jupyter-server-log.txt for debugging
+echo "Notebook server start command: $@" | tee -a ~/.jupyter-server-log.txt
+
+# mybinder sends a complex command to detect jupyter notebook or lab, using standard python3 executable:
+#   arg1: python3
+#   arg2: -c
+#   arg3: import os ... (long Python code, which adds "--NotebookApp.default_url=/lab/" to the argument list)
+#   arg4: --ip=0.0.0.0
+#   arg5: --port=8888
+#   arg6: --NotebookApp.base_url=/user/lassoan-slicernotebooks-1g6ow0gs/
+#   arg7: --NotebookApp.token=sw77G_ZwRdCCE8qy9-R_Tg
+#   ... (there may be more arguments)
+
+# The docker image does not have system python, just Slicer's therefore we collect the arguments
+# that configure the notebook and pass those to Slicer jupyter.
+
+jupyter_args=()
+for arg in "$@"
+do
+    if [[ "$arg" =~ ^--ip=.+|^--port.+|^--NotebookApp\..+  ]]; then
+        jupyter_args+=("$arg")
+    fi
+done
+
+# Recent-enough jupyterlab is available, make it the default UI
+jupyter_args+=("--NotebookApp.default_url=/lab/")
+
+echo "Found jupyter notebook arguments: ${jupyter_args[@]}" 2>&1 | tee -a ~/.jupyter-server-log.txt
+
 /home/sliceruser/run.sh
 
-echo "$@"
+# Make output redirection of server logs more robust
+export PYTHONUNBUFFERED=1
 
-exec "$@"
+exec /home/sliceruser/Slicer/bin/PythonSlicer -m jupyter notebook "${jupyter_args[@]}" 2>&1 | tee -a ~/.jupyter-server-log.txt
+
+# If launching fails for *any reason* then all the information mybinder provides is something like this:
+#
+#   2021-10-16T05:57:55Z [Normal] Created container notebook
+#   2021-10-16T05:57:55Z [Normal] Started container notebook
+#
+# ...and connection to the jupyter server times out.
+#
+# To debug the startup issues, the easiest method is to install system Python
+# (similarly to this repository: https://github.com/jupyter/docker-stacks/tree/master/minimal-notebook)
+# because mybinder surely works with that, and use the command terminal to access logs (~/.jupyter-server-log.txt)
+# and test things interactively.
