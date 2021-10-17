@@ -36,6 +36,9 @@ echo "Found jupyter notebook arguments: ${jupyter_args[@]}" 2>&1 | tee -a ~/.jup
 # Make output redirection of server logs more robust
 export PYTHONUNBUFFERED=1
 
+# Use bash as shell in Jupyter terminal (much more convenient than the default sh)
+export SHELL=/bin/bash
+
 exec /home/sliceruser/Slicer/bin/PythonSlicer -m jupyter notebook "${jupyter_args[@]}" 2>&1 | tee -a ~/.jupyter-server-log.txt
 
 # If launching fails for *any reason* then all the information mybinder provides is something like this:
