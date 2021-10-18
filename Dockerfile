@@ -1,4 +1,4 @@
-FROM lassoan/slicer-notebook:2021-10-15-b3077c2
+FROM lassoan/slicer-notebook:2021-10-18-82eb223
 
 # We do not use NB_USER and NB_UID arguments
 # because they are hardcoded to sliceruser and 100 in the Slicer docker image
